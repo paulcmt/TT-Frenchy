@@ -32,12 +32,39 @@ class TravelerController {
   // POST /travelers - Créer un voyageur
   static async create(req, res) {
     try {
-      const { name, email, phone, status, internal_notes } = req.body;
+      const { first_name, name, email, phone, status, internal_notes } = req.body;
       
       // Validation
       const errors = {};
+      
+      // First name validation
+      if (!first_name || first_name.trim().length === 0) {
+        errors.first_name = 'Le prénom est obligatoire';
+      } else if (first_name.trim().length < 2) {
+        errors.first_name = 'Le prénom doit contenir au moins 2 caractères';
+      }
+      
+      // Name validation
       if (!name || name.trim().length === 0) {
         errors.name = 'Le nom est obligatoire';
+      } else if (name.trim().length < 2) {
+        errors.name = 'Le nom doit contenir au moins 2 caractères';
+      }
+      
+      // Phone validation
+      if (phone && phone.trim().length > 0) {
+        const phoneDigits = phone.replace(/\D/g, '');
+        if (phoneDigits.length < 10) {
+          errors.phone = 'Le numéro de téléphone doit contenir au moins 10 chiffres';
+        }
+      }
+      
+      // Email validation
+      if (email && email.trim().length > 0) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.trim())) {
+          errors.email = 'Veuillez entrer une adresse email valide';
+        }
       }
       
       if (Object.keys(errors).length > 0) {
@@ -49,6 +76,7 @@ class TravelerController {
       }
 
       const travelerId = await Traveler.create({
+        first_name: first_name.trim(),
         name: name.trim(),
         email: email?.trim() || null,
         phone: phone?.trim() || null,
@@ -122,12 +150,39 @@ class TravelerController {
   // PUT /travelers/:id - Modifier un voyageur
   static async update(req, res) {
     try {
-      const { name, email, phone, status, internal_notes } = req.body;
+      const { first_name, name, email, phone, status, internal_notes } = req.body;
       
       // Validation
       const errors = {};
+      
+      // First name validation
+      if (!first_name || first_name.trim().length === 0) {
+        errors.first_name = 'Le prénom est obligatoire';
+      } else if (first_name.trim().length < 2) {
+        errors.first_name = 'Le prénom doit contenir au moins 2 caractères';
+      }
+      
+      // Name validation
       if (!name || name.trim().length === 0) {
         errors.name = 'Le nom est obligatoire';
+      } else if (name.trim().length < 2) {
+        errors.name = 'Le nom doit contenir au moins 2 caractères';
+      }
+      
+      // Phone validation
+      if (phone && phone.trim().length > 0) {
+        const phoneDigits = phone.replace(/\D/g, '');
+        if (phoneDigits.length < 10) {
+          errors.phone = 'Le numéro de téléphone doit contenir au moins 10 chiffres';
+        }
+      }
+      
+      // Email validation
+      if (email && email.trim().length > 0) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.trim())) {
+          errors.email = 'Veuillez entrer une adresse email valide';
+        }
       }
       
       if (Object.keys(errors).length > 0) {
@@ -140,6 +195,7 @@ class TravelerController {
       }
 
       const success = await Traveler.update(req.params.id, {
+        first_name: first_name.trim(),
         name: name.trim(),
         email: email?.trim() || null,
         phone: phone?.trim() || null,
@@ -197,6 +253,9 @@ class TravelerController {
       if (!check_out_date) {
         errors.check_out_date = 'La date de départ est obligatoire';
       }
+      if (check_in_date && check_out_date && new Date(check_in_date) >= new Date(check_out_date)) {
+        errors.check_out_date = 'La date de départ doit être postérieure à la date d\'arrivée';
+      }
       
       if (Object.keys(errors).length > 0) {
         const traveler = await Traveler.getById(req.params.id);
@@ -208,7 +267,7 @@ class TravelerController {
         });
       }
 
-      await Traveler.addStay(req.params.id, {
+      const stayId = await Traveler.addStay(req.params.id, {
         check_in_date,
         check_out_date,
         booking_reference: booking_reference?.trim() || null,
@@ -219,7 +278,120 @@ class TravelerController {
       res.redirect(`/travelers/${req.params.id}`);
     } catch (error) {
       console.error('Error adding stay:', error);
-      req.flash('error', 'Erreur lors de l\'ajout du séjour');
+      const traveler = await Traveler.getById(req.params.id);
+      res.render('travelers/show', {
+        title: `Détails de ${traveler.name}`,
+        traveler,
+        stayErrors: { general: 'Erreur lors de l\'ajout du séjour' },
+        stayData: req.body
+      });
+    }
+  }
+
+  // GET /travelers/:id/stays/:stayId/edit - Formulaire de modification d'un séjour
+  static async editStay(req, res) {
+    try {
+      const traveler = await Traveler.getById(req.params.id);
+      if (!traveler) {
+        return res.status(404).render('error', {
+          title: 'Voyageur non trouvé',
+          message: 'Le voyageur demandé n\'existe pas'
+        });
+      }
+
+      const stay = await Traveler.getStayById(req.params.stayId);
+      if (!stay || stay.traveler_id != req.params.id) {
+        return res.status(404).render('error', {
+          title: 'Séjour non trouvé',
+          message: 'Le séjour demandé n\'existe pas'
+        });
+      }
+
+      res.render('travelers/edit-stay', {
+        title: `Modifier le séjour de ${traveler.name}`,
+        traveler,
+        stay,
+        errors: {}
+      });
+    } catch (error) {
+      console.error('Error fetching stay for edit:', error);
+      res.status(500).render('error', {
+        title: 'Erreur',
+        message: 'Erreur lors du chargement du séjour'
+      });
+    }
+  }
+
+  // PUT /travelers/:id/stays/:stayId - Modifier un séjour
+  static async updateStay(req, res) {
+    try {
+      const { check_in_date, check_out_date, booking_reference, notes } = req.body;
+      
+      // Validation
+      const errors = {};
+      if (!check_in_date) {
+        errors.check_in_date = 'La date d\'arrivée est obligatoire';
+      }
+      if (!check_out_date) {
+        errors.check_out_date = 'La date de départ est obligatoire';
+      }
+      if (check_in_date && check_out_date && new Date(check_in_date) >= new Date(check_out_date)) {
+        errors.check_out_date = 'La date de départ doit être postérieure à la date d\'arrivée';
+      }
+      
+      if (Object.keys(errors).length > 0) {
+        const traveler = await Traveler.getById(req.params.id);
+        const stay = await Traveler.getStayById(req.params.stayId);
+        return res.render('travelers/edit-stay', {
+          title: `Modifier le séjour de ${traveler.name}`,
+          traveler,
+          stay: { ...stay, ...req.body },
+          errors
+        });
+      }
+
+      const success = await Traveler.updateStay(req.params.stayId, {
+        check_in_date,
+        check_out_date,
+        booking_reference: booking_reference?.trim() || null,
+        notes: notes?.trim() || null
+      });
+
+      if (!success) {
+        return res.status(404).render('error', {
+          title: 'Séjour non trouvé',
+          message: 'Le séjour demandé n\'existe pas'
+        });
+      }
+
+      req.flash('success', 'Séjour modifié avec succès');
+      res.redirect(`/travelers/${req.params.id}`);
+    } catch (error) {
+      console.error('Error updating stay:', error);
+      const traveler = await Traveler.getById(req.params.id);
+      const stay = await Traveler.getStayById(req.params.stayId);
+      res.render('travelers/edit-stay', {
+        title: `Modifier le séjour de ${traveler.name}`,
+        traveler,
+        stay: { ...stay, ...req.body },
+        errors: { general: 'Erreur lors de la modification du séjour' }
+      });
+    }
+  }
+
+  // DELETE /travelers/:id/stays/:stayId - Supprimer un séjour
+  static async deleteStay(req, res) {
+    try {
+      const success = await Traveler.deleteStay(req.params.stayId);
+      if (!success) {
+        return res.status(404).json({ error: 'Séjour non trouvé' });
+      }
+
+      req.flash('success', 'Séjour supprimé avec succès');
+      res.redirect(`/travelers/${req.params.id}`);
+    } catch (error) {
+      console.error('Error deleting stay:', error);
+      req.flash('error', 'Erreur lors de la suppression du séjour');
       res.redirect(`/travelers/${req.params.id}`);
     }
   }
@@ -245,6 +417,23 @@ class TravelerController {
       }
 
       const result = await CSVImporter.importFromFile(req.file.path);
+      
+      // Set flash messages
+      let message = `Import terminé : ${result.processed} lignes traitées`;
+      if (result.created > 0) {
+        message += `, ${result.created} voyageur(s) créé(s)`;
+      }
+      if (result.updated > 0) {
+        message += `, ${result.updated} séjour(s) ajouté(s)`;
+      }
+      if (result.skipped > 0) {
+        message += `, ${result.skipped} séjour(s) ignoré(s) (références existantes)`;
+      }
+      if (result.errors.length > 0) {
+        message += `, ${result.errors.length} erreur(s)`;
+      }
+      
+      req.flash('success', message);
       
       res.render('travelers/import', {
         title: 'Import terminé',

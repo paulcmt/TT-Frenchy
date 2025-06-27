@@ -17,6 +17,22 @@
 
         <!-- Form -->
         <form method="POST" action="/travelers/<%= traveler.id %>?_method=PUT" class="p-6 space-y-6">
+            <!-- First Name -->
+            <div>
+                <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">
+                    Prénom <span class="text-red-500">*</span>
+                </label>
+                <input type="text" 
+                       id="first_name" 
+                       name="first_name" 
+                       value="<%= traveler.first_name || '' %>"
+                       class="block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm <%= errors.first_name ? 'border-red-300' : 'border-gray-300' %>"
+                       required>
+                <% if (errors.first_name) { %>
+                    <p class="mt-1 text-sm text-red-600"><%= errors.first_name %></p>
+                <% } %>
+            </div>
+
             <!-- Name -->
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
@@ -42,7 +58,9 @@
                        id="email" 
                        name="email" 
                        value="<%= traveler.email || '' %>"
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                       class="block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm <%= errors.email ? 'border-red-300' : 'border-gray-300' %>"
+                       pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                       title="Veuillez entrer une adresse email valide">
                 <% if (errors.email) { %>
                     <p class="mt-1 text-sm text-red-600"><%= errors.email %></p>
                 <% } %>
@@ -57,7 +75,9 @@
                        id="phone" 
                        name="phone" 
                        value="<%= traveler.phone || '' %>"
-                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                       class="block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm <%= errors.phone ? 'border-red-300' : 'border-gray-300' %>"
+                       pattern="[0-9+\s\-\(\)]{10,}"
+                       title="Veuillez entrer un numéro de téléphone valide (minimum 10 chiffres)">
                 <% if (errors.phone) { %>
                     <p class="mt-1 text-sm text-red-600"><%= errors.phone %></p>
                 <% } %>
@@ -121,4 +141,146 @@
             </div>
         </form>
     </div>
-</div> 
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const firstNameInput = document.getElementById('first_name');
+    const nameInput = document.getElementById('name');
+    const phoneInput = document.getElementById('phone');
+    const emailInput = document.getElementById('email');
+    
+    // Validation functions
+    function validateFirstName() {
+        const value = firstNameInput.value.trim();
+        if (!value) {
+            showError(firstNameInput, 'Le prénom est obligatoire');
+            return false;
+        }
+        if (value.length < 2) {
+            showError(firstNameInput, 'Le prénom doit contenir au moins 2 caractères');
+            return false;
+        }
+        hideError(firstNameInput);
+        return true;
+    }
+    
+    function validateName() {
+        const value = nameInput.value.trim();
+        if (!value) {
+            showError(nameInput, 'Le nom est obligatoire');
+            return false;
+        }
+        if (value.length < 2) {
+            showError(nameInput, 'Le nom doit contenir au moins 2 caractères');
+            return false;
+        }
+        hideError(nameInput);
+        return true;
+    }
+    
+    function validatePhone() {
+        const value = phoneInput.value.trim();
+        if (value) { // Phone is optional but if provided, must be valid
+            // Remove all non-digit characters for validation
+            const digitsOnly = value.replace(/\D/g, '');
+            if (digitsOnly.length < 10) {
+                showError(phoneInput, 'Le numéro de téléphone doit contenir au moins 10 chiffres');
+                return false;
+            }
+        }
+        hideError(phoneInput);
+        return true;
+    }
+    
+    function validateEmail() {
+        const value = emailInput.value.trim();
+        if (value) { // Email is optional but if provided, must be valid
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                showError(emailInput, 'Veuillez entrer une adresse email valide');
+                return false;
+            }
+        }
+        hideError(emailInput);
+        return true;
+    }
+    
+    function showError(input, message) {
+        input.classList.add('border-red-300');
+        input.classList.remove('border-gray-300');
+        
+        // Remove existing error message
+        const existingError = input.parentNode.querySelector('.error-message');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // Add new error message
+        const errorElement = document.createElement('p');
+        errorElement.className = 'mt-1 text-sm text-red-600 error-message';
+        errorElement.textContent = message;
+        input.parentNode.appendChild(errorElement);
+    }
+    
+    function hideError(input) {
+        input.classList.remove('border-red-300');
+        input.classList.add('border-gray-300');
+        
+        const errorElement = input.parentNode.querySelector('.error-message');
+        if (errorElement) {
+            errorElement.remove();
+        }
+    }
+    
+    // Event listeners for real-time validation
+    firstNameInput.addEventListener('blur', validateFirstName);
+    firstNameInput.addEventListener('input', function() {
+        if (firstNameInput.classList.contains('border-red-300')) {
+            validateFirstName();
+        }
+    });
+    
+    nameInput.addEventListener('blur', validateName);
+    nameInput.addEventListener('input', function() {
+        if (nameInput.classList.contains('border-red-300')) {
+            validateName();
+        }
+    });
+    
+    phoneInput.addEventListener('blur', validatePhone);
+    phoneInput.addEventListener('input', function() {
+        if (phoneInput.classList.contains('border-red-300')) {
+            validatePhone();
+        }
+        
+        // Format phone number as user types
+        const value = phoneInput.value.replace(/\D/g, '');
+        if (value.length <= 10) {
+            const formatted = value.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5').trim();
+            phoneInput.value = formatted;
+        }
+    });
+    
+    emailInput.addEventListener('blur', validateEmail);
+    emailInput.addEventListener('input', function() {
+        if (emailInput.classList.contains('border-red-300')) {
+            validateEmail();
+        }
+    });
+    
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        const isFirstNameValid = validateFirstName();
+        const isNameValid = validateName();
+        const isPhoneValid = validatePhone();
+        const isEmailValid = validateEmail();
+        
+        if (!isFirstNameValid || !isNameValid || !isPhoneValid || !isEmailValid) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script> 

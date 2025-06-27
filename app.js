@@ -9,7 +9,6 @@ var flash = require('connect-flash');
 var { initDatabase } = require('./models/database');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 var travelersRouter = require('./routes/travelers');
 
 var app = express();
@@ -69,6 +68,22 @@ app.locals.formatDate = function(dateString) {
   });
 };
 
+// Add helper functions to EJS locals
+app.locals.formatPhoneNumber = function(phone) {
+  if (!phone) return '';
+  
+  // Remove all non-digit characters
+  const digits = phone.replace(/\D/g, '');
+  
+  // Format as XX XX XX XX XX
+  if (digits.length === 10) {
+    return digits.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
+  }
+  
+  // If not exactly 10 digits, return original
+  return phone;
+};
+
 // Middleware
 app.use(logger('dev'));
 app.use(express.json());
@@ -76,10 +91,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(methodOverride('_method')); // For PUT/DELETE requests
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
 app.use('/travelers', travelersRouter);
 
 // Catch 404 and forward to error handler

@@ -1,10 +1,10 @@
 {
-  "name": "test-technique-jacquet",
+  "name": "TT-Frenchy",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "dev": "nodemon ./bin/www"
+    "start": "node --no-deprecation ./bin/www",
+    "dev": "nodemon --no-deprecation ./bin/www"
   },
   "dependencies": {
     "@tailwindcss/forms": "^0.5.10",

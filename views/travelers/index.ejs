@@ -54,7 +54,7 @@
                                 <div class="flex-1">
                                     <h3 class="text-lg font-semibold text-gray-900 mb-2">
                                         <a href="/travelers/<%= traveler.id %>" class="hover:text-primary-600">
-                                            <%= traveler.name %>
+                                            <%= traveler.first_name ? traveler.first_name + ' ' + traveler.name : traveler.name %>
                                         </a>
                                     </h3>
                                     <div class="mb-3">
@@ -70,7 +70,7 @@
                                         <% if (traveler.phone) { %>
                                             <div class="flex items-center">
                                                 <i class="fas fa-phone w-4 mr-2 text-gray-400"></i>
-                                                <span><%= traveler.phone %></span>
+                                                <span><%= formatPhoneNumber(traveler.phone) %></span>
                                             </div>
                                         <% } %>
                                         <div class="flex items-center">
@@ -124,12 +124,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const cards = travelersGrid.querySelectorAll('.border');
         
         cards.forEach(card => {
-            const name = card.querySelector('h3').textContent.toLowerCase();
+            const nameElement = card.querySelector('h3');
+            const fullName = nameElement.textContent.toLowerCase();
             const email = card.querySelector('.fa-envelope')?.nextElementSibling?.textContent.toLowerCase() || '';
             const phone = card.querySelector('.fa-phone')?.nextElementSibling?.textContent.toLowerCase() || '';
             const status = card.querySelector('.rounded-full').textContent.toLowerCase();
             
-            const matchesSearch = name.includes(searchTerm) || 
+            const matchesSearch = fullName.includes(searchTerm) || 
                                 email.includes(searchTerm) || 
                                 phone.includes(searchTerm);
             const matchesStatus = !statusTerm || status.includes(statusTerm);

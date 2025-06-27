@@ -52,5 +52,8 @@ router.get('/:id/edit', TravelerController.edit);
 router.put('/:id', TravelerController.update);
 router.delete('/:id', TravelerController.destroy);
 router.post('/:id/stays', TravelerController.addStay);
+router.get('/:id/stays/:stayId/edit', TravelerController.editStay);
+router.put('/:id/stays/:stayId', TravelerController.updateStay);
+router.delete('/:id/stays/:stayId', TravelerController.deleteStay);
 
 module.exports = router; 

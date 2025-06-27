@@ -10,25 +10,26 @@ class CSVImporter {
       let processedCount = 0;
       let createdCount = 0;
       let updatedCount = 0;
+      let skippedCount = 0;
 
       fs.createReadStream(filePath)
         .pipe(csv())
         .on('data', async (data) => {
           try {
-            // Map CSV columns to our data structure
-            // Adjust these mappings based on your actual CSV structure
+            // Map Superhote CSV columns to our data structure
             const travelerData = {
-              name: data.guest_name || data.name || data['Guest Name'],
-              email: data.guest_email || data.email || data['Guest Email'],
-              phone: data.guest_phone || data.phone || data['Guest Phone'],
+              first_name: data['Guest first name'] || data['Guest First Name'] || data.first_name,
+              name: data['Guest last name'] || data['Guest Last Name'] || data.last_name || data.name,
+              email: data['Email'] || data.email,
+              phone: data['Téléphone'] || data['Phone'] || data.phone,
               status: 'normal' // Default status
             };
 
             const stayData = {
-              check_in_date: data.check_in || data.checkin || data['Check-in Date'],
-              check_out_date: data.check_out || data.checkout || data['Check-out Date'],
-              booking_reference: data.booking_id || data.reference || data['Booking ID'],
-              notes: data.notes || data.comments || ''
+              check_in_date: data['Checkin'] || data['Check-in'] || data.checkin || data.check_in_date,
+              check_out_date: data['Checkout'] || data['Check-out'] || data.checkout || data.check_out_date,
+              booking_reference: data['Date de réservation'] || data['Booking Date'] || data.booking_date,
+              notes: this.formatStayNotes(data)
             };
 
             // Process this record
@@ -37,6 +38,7 @@ class CSVImporter {
             
             if (result.action === 'created') createdCount++;
             if (result.action === 'updated') updatedCount++;
+            if (result.action === 'skipped') skippedCount++;
             processedCount++;
 
           } catch (error) {
@@ -52,6 +54,7 @@ class CSVImporter {
             processed: processedCount,
             created: createdCount,
             updated: updatedCount,
+            skipped: skippedCount,
             errors: errors,
             results: results
           });
@@ -62,7 +65,59 @@ class CSVImporter {
     });
   }
 
+  static formatStayNotes(data) {
+    const notes = [];
+    
+    // Add price information
+    if (data['Price'] || data.price) {
+      notes.push(`Prix: ${data['Price'] || data.price}€`);
+    }
+    
+    // Add guest count information
+    if (data['Nombre d\'adultes'] || data.adults) {
+      notes.push(`Adultes: ${data['Nombre d\'adultes'] || data.adults}`);
+    }
+    if (data['Nombre d\'enfants'] || data.children) {
+      notes.push(`Enfants: ${data['Nombre d\'enfants'] || data.children}`);
+    }
+    
+    // Add commission information
+    if (data['Commission'] || data.commission) {
+      notes.push(`Commission: ${data['Commission'] || data.commission}€`);
+    }
+    
+    // Add cleaning fees
+    if (data['Frais de ménage'] || data.cleaning_fees) {
+      notes.push(`Ménage: ${data['Frais de ménage'] || data.cleaning_fees}€`);
+    }
+    
+    // Add stay taxes
+    if (data['Taxes de séjour'] || data.stay_taxes) {
+      notes.push(`Taxes: ${data['Taxes de séjour'] || data.stay_taxes}€`);
+    }
+    
+    // Add original notes
+    if (data['Notes'] || data.notes || data.comments) {
+      notes.push(`Commentaires: ${data['Notes'] || data.notes || data.comments}`);
+    }
+    
+    return notes.length > 0 ? notes.join(' | ') : null;
+  }
+
   static async processRecord(travelerData, stayData) {
+    // Check if stay already exists by booking reference
+    if (stayData.booking_reference) {
+      const existingStay = await this.findStayByBookingReference(stayData.booking_reference);
+      if (existingStay) {
+        return {
+          action: 'skipped',
+          travelerId: existingStay.traveler_id,
+          stayId: existingStay.id,
+          message: `Séjour ignoré - référence déjà existante: ${stayData.booking_reference}`
+        };
+      }
+    }
+
     // Check if traveler already exists by email
     let traveler = null;
     if (travelerData.email) {
@@ -76,7 +131,7 @@ class CSVImporter {
         action: 'updated',
         travelerId: traveler.id,
         stayId: stayId,
-        message: `Stay added to existing traveler: ${travelerData.name}`
+        message: `Séjour ajouté au voyageur existant: ${travelerData.first_name || ''} ${travelerData.name}`.trim()
       };
     } else {
       // Create new traveler
@@ -86,7 +141,7 @@ class CSVImporter {
         action: 'created',
         travelerId: travelerId,
         stayId: stayId,
-        message: `New traveler created: ${travelerData.name}`
+        message: `Nouveau voyageur créé: ${travelerData.first_name || ''} ${travelerData.name}`.trim()
       };
     }
   }

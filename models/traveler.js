@@ -9,7 +9,7 @@ class Traveler {
         FROM travelers t 
         LEFT JOIN stays s ON t.id = s.traveler_id 
         GROUP BY t.id 
-        ORDER BY t.name
+        ORDER BY t.first_name, t.name
       `;
       
       db.all(query, (err, rows) => {
@@ -49,13 +49,13 @@ class Traveler {
   // Create new traveler
   static create(travelerData) {
     return new Promise((resolve, reject) => {
-      const { name, email, phone, status, internal_notes } = travelerData;
+      const { first_name, name, email, phone, status, internal_notes } = travelerData;
       const query = `
-        INSERT INTO travelers (name, email, phone, status, internal_notes) 
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO travelers (first_name, name, email, phone, status, internal_notes) 
+        VALUES (?, ?, ?, ?, ?, ?)
       `;
       
-      db.run(query, [name, email, phone, status || 'normal', internal_notes], function(err) {
+      db.run(query, [first_name, name, email, phone, status || 'normal', internal_notes], function(err) {
         if (err) {
           reject(err);
         } else {
@@ -68,14 +68,14 @@ class Traveler {
   // Update traveler
   static update(id, travelerData) {
     return new Promise((resolve, reject) => {
-      const { name, email, phone, status, internal_notes } = travelerData;
+      const { first_name, name, email, phone, status, internal_notes } = travelerData;
       const query = `
         UPDATE travelers 
-        SET name = ?, email = ?, phone = ?, status = ?, internal_notes = ?, updated_at = CURRENT_TIMESTAMP 
+        SET first_name = ?, name = ?, email = ?, phone = ?, status = ?, internal_notes = ?, updated_at = CURRENT_TIMESTAMP 
         WHERE id = ?
       `;
       
-      db.run(query, [name, email, phone, status, internal_notes, id], function(err) {
+      db.run(query, [first_name, name, email, phone, status, internal_notes, id], function(err) {
         if (err) {
           reject(err);
         } else {
@@ -106,6 +106,64 @@ class Traveler {
           reject(err);
         } else {
           resolve(row);
+        }
+      });
+    });
+  }
+
+  // Find stay by booking reference
+  static findStayByBookingReference(bookingReference) {
+    return new Promise((resolve, reject) => {
+      db.get('SELECT * FROM stays WHERE booking_reference = ?', [bookingReference], (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+  }
+
+  // Get stay by ID
+  static getStayById(stayId) {
+    return new Promise((resolve, reject) => {
+      db.get('SELECT * FROM stays WHERE id = ?', [stayId], (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+  }
+
+  // Update stay
+  static updateStay(stayId, stayData) {
+    return new Promise((resolve, reject) => {
+      const { check_in_date, check_out_date, booking_reference, notes } = stayData;
+      
+      db.run(`
+        UPDATE stays 
+        SET check_in_date = ?, check_out_date = ?, booking_reference = ?, notes = ?
+        WHERE id = ?
+      `, [check_in_date, check_out_date, booking_reference, notes, stayId], function(err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this.changes > 0);
+        }
+      });
+    });
+  }
+
+  // Delete stay
+  static deleteStay(stayId) {
+    return new Promise((resolve, reject) => {
+      db.run('DELETE FROM stays WHERE id = ?', [stayId], function(err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this.changes > 0);
         }
       });
     });
