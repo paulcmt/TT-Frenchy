@@ -1,0 +1,245 @@
+<%- include('../partials/status-badge') %>
+
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white shadow rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900"><%= traveler.name %></h1>
+                    <div class="mt-2">
+                        <%- getStatusBadge(traveler.status) %>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="/travelers/<%= traveler.id %>/edit" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fas fa-edit mr-2"></i>Modifier
+                    </a>
+                    <form method="POST" action="/travelers/<%= traveler.id %>?_method=DELETE" class="inline" onsubmit="return confirmDelete()">
+                        <button type="submit" 
+                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            <i class="fas fa-trash mr-2"></i>Supprimer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Traveler Information -->
+        <div class="lg:col-span-2">
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Informations générales</h2>
+                </div>
+                <div class="p-6">
+                    <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Nom</dt>
+                            <dd class="mt-1 text-sm text-gray-900"><%= traveler.name %></dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Email</dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                <% if (traveler.email) { %>
+                                    <a href="mailto:<%= traveler.email %>" class="text-primary-600 hover:text-primary-500">
+                                        <%= traveler.email %>
+                                    </a>
+                                <% } else { %>
+                                    <span class="text-gray-400">Non renseigné</span>
+                                <% } %>
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Téléphone</dt>
+                            <dd class="mt-1 text-sm text-gray-900">
+                                <% if (traveler.phone) { %>
+                                    <a href="tel:<%= traveler.phone %>" class="text-primary-600 hover:text-primary-500">
+                                        <%= traveler.phone %>
+                                    </a>
+                                <% } else { %>
+                                    <span class="text-gray-400">Non renseigné</span>
+                                <% } %>
+                            </dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">Statut</dt>
+                            <dd class="mt-1">
+                                <%- getStatusBadge(traveler.status) %>
+                            </dd>
+                        </div>
+                        <% if (traveler.internal_notes) { %>
+                            <div class="sm:col-span-2">
+                                <dt class="text-sm font-medium text-gray-500">Remarques internes</dt>
+                                <dd class="mt-1 text-sm text-gray-900 whitespace-pre-wrap"><%= traveler.internal_notes %></dd>
+                            </div>
+                        <% } %>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="lg:col-span-1">
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Actions rapides</h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <a href="/travelers/new" 
+                       class="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fas fa-plus mr-2"></i>Nouveau Voyageur
+                    </a>
+                    <a href="/travelers/import/new" 
+                       class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fas fa-file-csv mr-2"></i>Importer CSV
+                    </a>
+                    <a href="/travelers" 
+                       class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fas fa-list mr-2"></i>Liste des voyageurs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stays History -->
+    <div class="mt-6 bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-medium text-gray-900">Historique des séjours</h2>
+                <button onclick="toggleAddStayForm()" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <i class="fas fa-plus mr-2"></i>Ajouter un séjour
+                </button>
+            </div>
+        </div>
+        
+        <!-- Add Stay Form (Hidden by default) -->
+        <div id="addStayForm" class="hidden px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <form method="POST" action="/travelers/<%= traveler.id %>/stays" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="check_in_date" class="block text-sm font-medium text-gray-700 mb-2">
+                            Date d'arrivée <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" 
+                               id="check_in_date" 
+                               name="check_in_date" 
+                               value="<%= locals.stayData ? stayData.check_in_date : '' %>"
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                               required>
+                        <% if (locals.stayErrors && stayErrors.check_in_date) { %>
+                            <p class="mt-1 text-sm text-red-600"><%= stayErrors.check_in_date %></p>
+                        <% } %>
+                    </div>
+                    <div>
+                        <label for="check_out_date" class="block text-sm font-medium text-gray-700 mb-2">
+                            Date de départ <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" 
+                               id="check_out_date" 
+                               name="check_out_date" 
+                               value="<%= locals.stayData ? stayData.check_out_date : '' %>"
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                               required>
+                        <% if (locals.stayErrors && stayErrors.check_out_date) { %>
+                            <p class="mt-1 text-sm text-red-600"><%= stayErrors.check_out_date %></p>
+                        <% } %>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="booking_reference" class="block text-sm font-medium text-gray-700 mb-2">
+                            Référence de réservation
+                        </label>
+                        <input type="text" 
+                               id="booking_reference" 
+                               name="booking_reference" 
+                               value="<%= locals.stayData ? stayData.booking_reference : '' %>"
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+                            Notes
+                        </label>
+                        <input type="text" 
+                               id="notes" 
+                               name="notes" 
+                               value="<%= locals.stayData ? stayData.notes : '' %>"
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" 
+                            onclick="toggleAddStayForm()"
+                            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        Annuler
+                    </button>
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <i class="fas fa-save mr-2"></i>Ajouter
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Stays List -->
+        <div class="p-6">
+            <% if (traveler.stays && traveler.stays.length > 0) { %>
+                <div class="space-y-4">
+                    <% traveler.stays.forEach(function(stay) { %>
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center space-x-4">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        <%= formatDate(stay.check_in_date) %> - <%= formatDate(stay.check_out_date) %>
+                                    </div>
+                                    <% if (stay.booking_reference) { %>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            <%= stay.booking_reference %>
+                                        </span>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <% if (stay.notes) { %>
+                                <p class="text-sm text-gray-600 italic"><%= stay.notes %></p>
+                            <% } %>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } else { %>
+                <div class="text-center py-8">
+                    <i class="fas fa-bed text-4xl text-gray-300 mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun séjour enregistré</h3>
+                    <p class="text-gray-500">Ajoutez le premier séjour de ce voyageur.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleAddStayForm() {
+    const form = document.getElementById('addStayForm');
+    form.classList.toggle('hidden');
+}
+
+// Set default dates for new stays
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0];
+    
+    const checkInInput = document.getElementById('check_in_date');
+    const checkOutInput = document.getElementById('check_out_date');
+    
+    if (checkInInput && !checkInInput.value) {
+        checkInInput.value = today;
+    }
+    if (checkOutInput && !checkOutInput.value) {
+        checkOutInput.value = tomorrow;
+    }
+});
+</script> 

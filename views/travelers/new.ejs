@@ -1,0 +1,124 @@
+<%- include('../partials/status-badge') %>
+
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white shadow rounded-lg">
+        <!-- Header -->
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Nouveau Voyageur</h1>
+                    <p class="mt-1 text-sm text-gray-500">Ajoutez un nouveau voyageur à votre base de données</p>
+                </div>
+                <a href="/travelers" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form method="POST" action="/travelers" class="p-6 space-y-6">
+            <!-- Name -->
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                    Nom <span class="text-red-500">*</span>
+                </label>
+                <input type="text" 
+                       id="name" 
+                       name="name" 
+                       value="<%= traveler.name || '' %>"
+                       class="block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm <%= errors.name ? 'border-red-300' : 'border-gray-300' %>"
+                       required>
+                <% if (errors.name) { %>
+                    <p class="mt-1 text-sm text-red-600"><%= errors.name %></p>
+                <% } %>
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                </label>
+                <input type="email" 
+                       id="email" 
+                       name="email" 
+                       value="<%= traveler.email || '' %>"
+                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                <% if (errors.email) { %>
+                    <p class="mt-1 text-sm text-red-600"><%= errors.email %></p>
+                <% } %>
+            </div>
+
+            <!-- Phone -->
+            <div>
+                <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                    Téléphone
+                </label>
+                <input type="tel" 
+                       id="phone" 
+                       name="phone" 
+                       value="<%= traveler.phone || '' %>"
+                       class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                <% if (errors.phone) { %>
+                    <p class="mt-1 text-sm text-red-600"><%= errors.phone %></p>
+                <% } %>
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
+                    Statut
+                </label>
+                <select id="status" 
+                        name="status" 
+                        class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                    <option value="normal" <%= (traveler.status || 'normal') === 'normal' ? 'selected' : '' %>>Normal</option>
+                    <option value="vip" <%= (traveler.status || '') === 'vip' ? 'selected' : '' %>>VIP</option>
+                    <option value="complique" <%= (traveler.status || '') === 'complique' ? 'selected' : '' %>>Compliqué</option>
+                </select>
+                <% if (errors.status) { %>
+                    <p class="mt-1 text-sm text-red-600"><%= errors.status %></p>
+                <% } %>
+            </div>
+
+            <!-- Internal Notes -->
+            <div>
+                <label for="internal_notes" class="block text-sm font-medium text-gray-700 mb-2">
+                    Remarques internes
+                </label>
+                <textarea id="internal_notes" 
+                          name="internal_notes" 
+                          rows="4"
+                          class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"><%= traveler.internal_notes || '' %></textarea>
+                <% if (errors.internal_notes) { %>
+                    <p class="mt-1 text-sm text-red-600"><%= errors.internal_notes %></p>
+                <% } %>
+            </div>
+
+            <!-- General Errors -->
+            <% if (errors.general) { %>
+                <div class="bg-red-50 border border-red-200 rounded-md p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle text-red-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700"><%= errors.general %></p>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+
+            <!-- Form Actions -->
+            <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                <a href="/travelers" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    Annuler
+                </a>
+                <button type="submit" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    <i class="fas fa-save mr-2"></i>Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div> 
