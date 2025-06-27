@@ -36,26 +36,55 @@
 </head>
 <body class="bg-gradient-to-br from-primary-50 to-primary-100 min-h-screen">
     <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
+    <nav class="bg-white shadow-lg" x-data="{ open: false }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
+            <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center">
                     <a href="/travelers" class="flex items-center space-x-3">
                         <i class="fas fa-users text-primary-600 text-2xl"></i>
-                        <span class="text-xl font-bold text-gray-900">Gestion des Voyageurs</span>
+                        <span class="hidden sm:inline text-xl font-bold text-gray-900 leading-tight">
+                          Gestion des Voyageurs
+                        </span>
                     </a>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <a href="/travelers" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                <!-- Hamburger button -->
+                <div class="flex sm:hidden">
+                    <button @click="open = !open" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-primary-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500" aria-controls="mobile-menu" aria-expanded="false">
+                        <span class="sr-only">Ouvrir le menu principal</span>
+                        <svg class="h-6 w-6" x-show="!open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg class="h-6 w-6" x-show="open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <!-- Desktop menu -->
+                <div class="hidden sm:flex items-center space-x-4">
+                    <a href="/travelers" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
                         <i class="fas fa-list mr-2"></i>Voyageurs
                     </a>
-                    <a href="/travelers/new" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                    <a href="/travelers/new" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
                         <i class="fas fa-plus mr-2"></i>Nouveau
                     </a>
-                    <a href="/travelers/import/new" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                    <a href="/travelers/import/new" class="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
                         <i class="fas fa-file-csv mr-2"></i>Importer
                     </a>
                 </div>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div class="sm:hidden" id="mobile-menu" x-show="open" @click.away="open = false">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="/travelers" class="block text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium flex items-center">
+                    <i class="fas fa-list mr-2"></i>Voyageurs
+                </a>
+                <a href="/travelers/new" class="block text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium flex items-center">
+                    <i class="fas fa-plus mr-2"></i>Nouveau
+                </a>
+                <a href="/travelers/import/new" class="block text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium flex items-center">
+                    <i class="fas fa-file-csv mr-2"></i>Importer
+                </a>
             </div>
         </div>
     </nav>
@@ -137,5 +166,6 @@
             return labels[status] || status;
         }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </body>
 </html> 

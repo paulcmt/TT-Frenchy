@@ -45,6 +45,19 @@
 
     <!-- Travelers Grid -->
     <div class="p-6">
+        <div id="no-travelers-message" class="text-center py-12 hidden">
+            <i class="fas fa-users text-4xl text-gray-300 mb-4"></i>
+            <h3 id="no-travelers-title" class="text-lg font-medium text-gray-900 mb-2"></h3>
+            <p class="text-gray-500 mb-6" id="no-travelers-desc"></p>
+            <div class="space-x-3">
+                <a href="/travelers/new" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700">
+                    <i class="fas fa-plus mr-2"></i>Ajouter un voyageur
+                </a>
+                <a href="/travelers/import/new" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    <i class="fas fa-file-csv mr-2"></i>Importer CSV
+                </a>
+            </div>
+        </div>
         <% if (travelers && travelers.length > 0) { %>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="travelers-grid">
                 <% travelers.forEach(function(traveler) { %>
@@ -117,33 +130,70 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('search');
     const statusFilter = document.getElementById('status-filter');
     const travelersGrid = document.getElementById('travelers-grid');
-    
+    const noTravelersMsg = document.getElementById('no-travelers-message');
+    const noTravelersTitle = document.getElementById('no-travelers-title');
+    const noTravelersDesc = document.getElementById('no-travelers-desc');
+
     function filterTravelers() {
+        // Si la grille n'existe pas (aucun voyageur initial), afficher le message adapté
+        if (!travelersGrid) {
+            noTravelersMsg.classList.remove('hidden');
+            const statusTerm = statusFilter.value;
+            if (statusTerm === 'vip') {
+                noTravelersTitle.textContent = 'Aucun voyageur VIP trouvé';
+                noTravelersDesc.textContent = 'Aucun voyageur avec le statut VIP n\'a été trouvé.';
+            } else if (statusTerm === 'complique') {
+                noTravelersTitle.textContent = 'Aucun voyageur compliqué trouvé';
+                noTravelersDesc.textContent = 'Aucun voyageur avec le statut compliqué n\'a été trouvé.';
+            } else {
+                noTravelersTitle.textContent = 'Aucun voyageur trouvé';
+                noTravelersDesc.textContent = 'Commencez par ajouter votre premier voyageur ou importer un fichier CSV.';
+            }
+            return;
+        }
+
         const searchTerm = searchInput.value.toLowerCase();
         const statusTerm = statusFilter.value;
         const cards = travelersGrid.querySelectorAll('.border');
-        
+        let visibleCount = 0;
         cards.forEach(card => {
             const nameElement = card.querySelector('h3');
             const fullName = nameElement.textContent.toLowerCase();
             const email = card.querySelector('.fa-envelope')?.nextElementSibling?.textContent.toLowerCase() || '';
             const phone = card.querySelector('.fa-phone')?.nextElementSibling?.textContent.toLowerCase() || '';
             const status = card.querySelector('.rounded-full').textContent.toLowerCase();
-            
-            const matchesSearch = fullName.includes(searchTerm) || 
-                                email.includes(searchTerm) || 
-                                phone.includes(searchTerm);
+            const matchesSearch = fullName.includes(searchTerm) ||
+                                  email.includes(searchTerm) ||
+                                  phone.includes(searchTerm);
             const matchesStatus = !statusTerm || status.includes(statusTerm);
-            
             if (matchesSearch && matchesStatus) {
                 card.style.display = 'block';
+                visibleCount++;
             } else {
                 card.style.display = 'none';
             }
         });
+        if (visibleCount === 0) {
+            travelersGrid.style.display = 'none';
+            noTravelersMsg.classList.remove('hidden');
+            if (statusTerm === 'vip') {
+                noTravelersTitle.textContent = 'Aucun voyageur VIP trouvé';
+                noTravelersDesc.textContent = 'Aucun voyageur avec le statut VIP n\'a été trouvé.';
+            } else if (statusTerm === 'complique') {
+                noTravelersTitle.textContent = 'Aucun voyageur compliqué trouvé';
+                noTravelersDesc.textContent = 'Aucun voyageur avec le statut compliqué n\'a été trouvé.';
+            } else {
+                noTravelersTitle.textContent = 'Aucun voyageur trouvé';
+                noTravelersDesc.textContent = 'Commencez par ajouter votre premier voyageur ou importer un fichier CSV.';
+            }
+        } else {
+            travelersGrid.style.display = 'grid';
+            noTravelersMsg.classList.add('hidden');
+        }
     }
-    
     searchInput.addEventListener('input', filterTravelers);
     statusFilter.addEventListener('change', filterTravelers);
+    // Appel initial pour synchroniser l'affichage au chargement
+    filterTravelers();
 });
 </script> 
